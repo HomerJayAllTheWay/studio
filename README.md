@@ -1,4 +1,4 @@
-Opencast Studio
+Opencast Studio (Mediasite Edition)
 ===============
 
 [![Build & test](https://github.com/opencast/studio/actions/workflows/ci.yml/badge.svg)](https://github.com/opencast/studio/actions/workflows/ci.yml)
