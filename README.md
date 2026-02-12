@@ -1,4 +1,5 @@
 Opencast Studio (Mediasite Edition)
+Portrait Updates
 ===============
 
 [![Build & test](https://github.com/opencast/studio/actions/workflows/ci.yml/badge.svg)](https://github.com/opencast/studio/actions/workflows/ci.yml)
