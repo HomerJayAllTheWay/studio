@@ -7,6 +7,7 @@ import {
   WithTooltip, screenWidthAtMost, useColorScheme,
 } from "@opencast/appkit";
 import { FiSettings, FiX } from "react-icons/fi";
+import { LuRectangleHorizontal, LuRectangleVertical, LuSquare } from "react-icons/lu";
 
 import { Settings, useSettings } from "../../settings";
 import { COLORS, getUniqueDevices } from "../../util";
@@ -56,7 +57,7 @@ export const prefsToConstraints = (
 };
 
 // All aspect ratios the user can choose from.
-const ASPECT_RATIOS = ["4:3", "16:9"];
+const ASPECT_RATIOS = ["4:3", "16:9", "9:16"];
 
 // All quality options given to the user respecting the `maxHeight` from the
 // settings.
@@ -77,6 +78,7 @@ const parseAspectRatio = (label: string) => {
   const mapping = {
     "4:3": 4 / 3,
     "16:9": 16 / 9,
+    "9:16": 9 / 16,
   };
 
   return (mapping as Record<string, number>)[label] ?? undefined;
@@ -399,16 +401,30 @@ const UserSettings: React.FC<UserSettingsProps> = ({ updatePrefs, prefs }) => {
         onChange={changeAspectRatio}
         checked={ASPECT_RATIOS.every(x => prefs.aspectRatio !== x)}
       />
-      {ASPECT_RATIOS.map(ar => (
-        <RadioButton
-          key={ar}
-          id={`ar-${ar}`}
-          value={ar}
-          name="aspectRatio"
-          onChange={changeAspectRatio}
-          checked={prefs.aspectRatio === ar}
-        />
-      ))}
+      <RadioButton
+        id="ar-4:3"
+        value="4:3"
+        name="aspectRatio"
+        icon={<LuSquare size={18} />}
+        onChange={changeAspectRatio}
+        checked={prefs.aspectRatio === "4:3"}
+      />
+      <RadioButton
+        id="ar-16:9"
+        value="16:9"
+        name="aspectRatio"
+        icon={<LuRectangleHorizontal size={18} />}
+        onChange={changeAspectRatio}
+        checked={prefs.aspectRatio === "16:9"}
+      />
+      <RadioButton
+        id="ar-9:16"
+        value="9:16"
+        name="aspectRatio"
+        icon={<LuRectangleVertical size={18} />}
+        onChange={changeAspectRatio}
+        checked={prefs.aspectRatio === "9:16"}
+      />
     </PrefValue>
   </>;
 };
@@ -419,12 +435,13 @@ type RadioButtonProps = {
   value: string;
   checked: boolean;
   label?: string;
+  icon?: React.ReactNode;
   onChange: (v: string) => void;
 };
 
 // A styled radio input which looks like a button.
 const RadioButton: React.FC<RadioButtonProps> = ({
-  id, value, checked, name, onChange, label,
+  id, value, checked, name, onChange, label, icon,
 }) => {
   const { isHighContrast } = useColorScheme();
 
@@ -436,7 +453,9 @@ const RadioButton: React.FC<RadioButtonProps> = ({
       css={{
         display: "none",
         "&+label": {
-          display: "block",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
           border: `1px solid ${COLORS.neutral25}`,
           lineHeight: 1.2,
           padding: "4px 10px",
@@ -464,7 +483,10 @@ const RadioButton: React.FC<RadioButtonProps> = ({
       tabIndex={0}
       onKeyDown={e => (e.key === "Enter" || e.key === " ") && onChange(value)}
       htmlFor={id}
-    >{label ?? value}</label>
+    >
+      {icon && <span css={{ display: "flex" }}>{icon}</span>}
+      {label ?? value}
+    </label>
   </div>;
 };
 
