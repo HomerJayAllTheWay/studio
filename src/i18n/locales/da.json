@@ -20,8 +20,7 @@
       "label": "Udseende",
       "dark": "Mørk",
       "light": "Lys",
-      "dark-high-contrast": "Mørk (høj kontrast)",
-      "light-high-contrast": "Lys (høj kontrast)",
+      "dark-high-contrast": "Høj kontrast",
       "auto": "Auto"
     },
     "language": {

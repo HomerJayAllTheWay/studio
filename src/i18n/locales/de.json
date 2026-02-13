@@ -20,8 +20,7 @@
       "label": "Aussehen",
       "dark": "Dunkel",
       "light": "Hell",
-      "dark-high-contrast": "Dunkel (hoher Kontrast)",
-      "light-high-contrast": "Hell (hoher Kontrast)",
+      "dark-high-contrast": "Hoher Kontrast",
       "auto": "Auto"
     },
     "language": {

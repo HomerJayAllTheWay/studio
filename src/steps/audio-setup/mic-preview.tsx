@@ -112,7 +112,7 @@ type AudioVisualziationProps = {
 };
 
 const AudioVisualziation: React.FC<AudioVisualziationProps> = ({ stream }) => {
-  const isDark = useColorScheme().scheme === "dark";
+  const isDark = useColorScheme().scheme.includes("dark");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -125,8 +125,8 @@ const AudioVisualziation: React.FC<AudioVisualziationProps> = ({ stream }) => {
       ctx.lineWidth = 2;
 
       // We use `--color-accent9` in light mode, but have to hard code it here.
-      // In dark mode, we use the tranditional yellow as it just looks better.
-      ctx.strokeStyle = isDark ? "#f1c40f" : "#044a81";
+      // In dark mode, we use the accent yellow.
+      ctx.strokeStyle = isDark ? "#FFFF00" : "#044a81";
 
       const audioContext = new window.AudioContext();
       const source = audioContext.createMediaStreamSource(stream);

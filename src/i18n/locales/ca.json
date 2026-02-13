@@ -20,8 +20,7 @@
       "label": "Aparença",
       "dark": "Fosc",
       "light": "Clar",
-      "dark-high-contrast": "Fosc (contrast alt)",
-      "light-high-contrast": "Clar (contrast alt)",
+      "dark-high-contrast": "Contrast alt",
       "auto": "Automàtic"
     },
     "language": {

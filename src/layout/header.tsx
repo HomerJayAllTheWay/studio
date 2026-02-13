@@ -122,7 +122,7 @@ const ThemeButton: React.FC = () => {
   const { scheme, isAuto, update } = useColorScheme();
 
   const currentPref = isAuto ? "auto" : scheme;
-  const choices = ["auto", "light", "dark", "light-high-contrast", "dark-high-contrast"] as const;
+  const choices = ["auto", "light", "dark", "dark-high-contrast"] as const;
   const menuItems: HeaderMenuItemProps[] = choices.map(choice => checkboxMenuItem({
     checked: currentPref === choice,
     children: <>{t(`header.theme.${choice}`)}</>,

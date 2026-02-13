@@ -20,8 +20,7 @@
       "label": "Aspetto",
       "dark": "Scuro",
       "light": "Chiaro",
-      "dark-high-contrast": "Scuro (alto contrasto)",
-      "light-high-contrast": "Chiaro (alto contrasto)",
+      "dark-high-contrast": "Alto contraste",
       "auto": "Auto"
     },
     "language": {

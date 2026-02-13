@@ -19,8 +19,7 @@
             "label": "ظاهر",
             "dark": "تیره",
             "light": "روشن",
-            "dark-high-contrast": "تیره (کنتراست بالا)",
-            "light-high-contrast": "روشن (کنتراست بالا)",
+            "dark-high-contrast": "کنتراست بالا",
             "auto": "خودکار"
         },
         "language": {
