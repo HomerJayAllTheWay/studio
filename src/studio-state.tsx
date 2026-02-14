@@ -40,6 +40,10 @@ export type StudioState = {
   videoChoice: VideoSource;
   audioChoice: AudioSource;
 
+  // Crop settings for display and user video
+  displayCrop: { x: number; y: number; width: number; height: number } | null;
+  userCrop: { x: number; y: number; width: number; height: number } | null;
+
   isRecording: boolean;
   prematureRecordingEnd: boolean;
   recordings: Recording[];
@@ -83,6 +87,9 @@ const initialState = (hasWebcam: boolean): StudioState => ({
   videoChoice: "none",
   audioChoice: "none",
 
+  displayCrop: null,
+  userCrop: null,
+
   isRecording: false,
   prematureRecordingEnd: false,
   recordings: [],
@@ -121,6 +128,8 @@ type ReducerAction =
   | { type: "BLOCK_USER" }
   | { type: "UNSHARE_USER" }
   | { type: "USER_UNEXPECTED_END" }
+  | { type: "SET_DISPLAY_CROP"; crop: { x: number; y: number; width: number; height: number } | null }
+  | { type: "SET_USER_CROP"; crop: { x: number; y: number; width: number; height: number } | null }
   | { type: "START_RECORDING" }
   | { type: "STOP_RECORDING" }
   | { type: "STOP_RECORDING_PREMATURELY" }
@@ -176,6 +185,11 @@ const reducer = (state: StudioState, action: ReducerAction): StudioState => {
       return { ...state, userStream: null, userAllowed: null, userUnexpectedEnd: false };
     case "USER_UNEXPECTED_END":
       return { ...state, userStream: null, userUnexpectedEnd: true };
+
+    case "SET_DISPLAY_CROP":
+      return { ...state, displayCrop: action.crop };
+    case "SET_USER_CROP":
+      return { ...state, userCrop: action.crop };
 
     case "START_RECORDING": return { ...state, isRecording: true, recordingStartTime: new Date() };
     case "STOP_RECORDING": return { ...state, isRecording: false, recordingEndTime: new Date() };

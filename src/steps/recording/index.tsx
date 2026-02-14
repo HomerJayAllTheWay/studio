@@ -18,6 +18,7 @@ import { dimensionsOf } from "../../util";
 import { RecordingControls } from "./controls";
 import Recorder, { OnStopCallback } from "./recorder";
 import { useSettings } from "../../settings";
+import { createCroppedStream } from "../video-setup/crop-stream";
 
 
 export type RecordingState = "inactive" | "paused" | "recording";
@@ -75,9 +76,59 @@ export const Recording: React.FC<StepProps> = ({ goToNextStep, goToPrevStep }) =
 
   const desktopRecorder = useRef<Recorder>(null);
   const videoRecorder = useRef<Recorder>(null);
+  type CropStreamRect = { stream: MediaStream; stop(): void };
+  const croppedStreams = useRef<{ display?: CropStreamRect; user?: CropStreamRect }>({});
+  const previewCroppedStreams = useRef<{ display?: CropStreamRect; user?: CropStreamRect }>({});
+  const [previewDisplayStream, setPreviewDisplayStream] = useState<MediaStream | null>(null);
+  const [previewUserStream, setPreviewUserStream] = useState<MediaStream | null>(null);
 
   const canRecord = (displayStream || userStream)
     && !userUnexpectedEnd && !displayUnexpectedEnd && !audioUnexpectedEnd;
+
+  useEffect(() => {
+    previewCroppedStreams.current.display?.stop();
+    previewCroppedStreams.current.display = undefined;
+    if (!displayStream) {
+      setPreviewDisplayStream(null);
+      return;
+    }
+    if (state.displayCrop) {
+      try {
+        const cropped = createCroppedStream(displayStream, state.displayCrop, 30);
+        previewCroppedStreams.current.display = cropped;
+        setPreviewDisplayStream(cropped.stream);
+        return;
+      } catch (e) {
+        console.error("Failed to create preview cropped stream, using full display", e);
+      }
+    }
+    setPreviewDisplayStream(displayStream);
+  }, [displayStream, state.displayCrop]);
+
+  useEffect(() => {
+    previewCroppedStreams.current.user?.stop();
+    previewCroppedStreams.current.user = undefined;
+    if (!userStream) {
+      setPreviewUserStream(null);
+      return;
+    }
+    if (state.userCrop) {
+      try {
+        const cropped = createCroppedStream(userStream, state.userCrop, 30);
+        previewCroppedStreams.current.user = cropped;
+        setPreviewUserStream(cropped.stream);
+        return;
+      } catch (e) {
+        console.error("Failed to create preview cropped stream, using full video", e);
+      }
+    }
+    setPreviewUserStream(userStream);
+  }, [userStream, state.userCrop]);
+
+  useEffect(() => () => {
+    previewCroppedStreams.current.display?.stop();
+    previewCroppedStreams.current.user?.stop();
+  }, []);
 
   const startRecording = () => {
     // In theory, we should never have recordings at this point. But just to be
@@ -86,13 +137,35 @@ export const Recording: React.FC<StepProps> = ({ goToNextStep, goToPrevStep }) =
 
     if (displayStream) {
       const onStop = addRecordOnStop(dispatch, "desktop");
-      const stream = mixAudioIntoVideo([state.audioStream], displayStream);
+      // Apply crop if configured
+      let videoToRecord = displayStream;
+      if (state.displayCrop) {
+        try {
+          const cropped = createCroppedStream(displayStream, state.displayCrop, 30);
+          croppedStreams.current.display = cropped;
+          videoToRecord = cropped.stream;
+        } catch (e) {
+          console.error("Failed to create cropped stream, using full display", e);
+        }
+      }
+      const stream = mixAudioIntoVideo([state.audioStream], videoToRecord);
       desktopRecorder.current = new Recorder(stream, settings.recording, onStop);
       desktopRecorder.current.start();
     }
     if (userStream) {
       const onStop = addRecordOnStop(dispatch, "video");
-      const stream = mixAudioIntoVideo([state.audioStream, displayStream], userStream);
+      // Apply crop if configured
+      let videoToRecord = userStream;
+      if (state.userCrop) {
+        try {
+          const cropped = createCroppedStream(userStream, state.userCrop, 30);
+          croppedStreams.current.user = cropped;
+          videoToRecord = cropped.stream;
+        } catch (e) {
+          console.error("Failed to create cropped stream, using full video", e);
+        }
+      }
+      const stream = mixAudioIntoVideo([state.audioStream, displayStream], videoToRecord);
       videoRecorder.current = new Recorder(stream, settings.recording, onStop);
       videoRecorder.current.start();
     }
@@ -104,6 +177,9 @@ export const Recording: React.FC<StepProps> = ({ goToNextStep, goToPrevStep }) =
   const stopRecording = (premature: boolean) => {
     desktopRecorder.current?.stop();
     videoRecorder.current?.stop();
+    // Stop cropped streams if they were created
+    croppedStreams.current.display?.stop();
+    croppedStreams.current.user?.stop();
     dispatch({ type: premature ? "STOP_RECORDING_PREMATURELY" : "STOP_RECORDING" });
     opencast.refreshConnection();
     stopCapture(state, recordingDispatch);
@@ -135,16 +211,16 @@ export const Recording: React.FC<StepProps> = ({ goToNextStep, goToPrevStep }) =
   const previews: VideoBoxProps["children"] = [];
   if (displayStream || displayUnexpectedEnd) {
     previews.push({
-      body: <StreamPreview stream={displayStream} paused={paused} />,
-      dimensions: () => dimensionsOf(displayStream),
-      autoSize: !displayStream,
+      body: <StreamPreview stream={previewDisplayStream} paused={paused} />,
+      dimensions: () => dimensionsOf(previewDisplayStream),
+      autoSize: !previewDisplayStream,
     });
   }
   if (userStream || userUnexpectedEnd) {
     previews.push({
-      body: <StreamPreview stream={userStream} paused={paused} />,
-      dimensions: () => dimensionsOf(userStream),
-      autoSize: !userStream,
+      body: <StreamPreview stream={previewUserStream} paused={paused} />,
+      dimensions: () => dimensionsOf(previewUserStream),
+      autoSize: !previewUserStream,
     });
   }
 

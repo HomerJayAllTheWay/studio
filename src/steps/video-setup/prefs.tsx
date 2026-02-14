@@ -1,14 +1,15 @@
 // Everything related to video stream preferences that the user can modify.
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import {
   Floating, FloatingContainer, FloatingHandle, FloatingTrigger, ProtoButton,
   WithTooltip, screenWidthAtMost, useColorScheme,
 } from "@opencast/appkit";
 import { FiSettings, FiX } from "react-icons/fi";
+import { CSSObject } from "@emotion/react";
 
-import { Settings, useSettings } from "../../settings";
+import { useSettings } from "../../settings";
 import { COLORS, getUniqueDevices } from "../../util";
 import { useDispatch, useStudioState } from "../../studio-state";
 import {
@@ -55,20 +56,7 @@ export const prefsToConstraints = (
   };
 };
 
-// All aspect ratios the user can choose from.
-const ASPECT_RATIOS = ["4:3", "16:9"];
-
-// All quality options given to the user respecting the `maxHeight` from the
-// settings.
-const qualityOptions = (maxHeight: number | undefined) => {
-  const defaults = [360, 480, 720, 1080, 1440, 2160];
-  const out = defaults.filter(q => !maxHeight || q <= maxHeight);
-  if (maxHeight && (out.length === 0 || out[out.length - 1] !== maxHeight)) {
-    out.push(maxHeight);
-  }
-
-  return out.map(n => `${n}p`);
-};
+// Quality/aspect ratio controls are fixed to auto.
 
 // Converts the given aspect ratio label (one of the elements in
 // `ASPECT_RATIOS`) into the numerical ratio, e.g. 4/3 = 1.333. If the argument
@@ -111,21 +99,22 @@ type DisplayPrefs = {
 // Loads the initial camera preferences from local storage.
 export const loadCameraPrefs = (): CameraPrefs => ({
   deviceId: window.localStorage.getItem(LAST_VIDEO_DEVICE_KEY) ?? undefined,
-  aspectRatio: window.localStorage.getItem(CAMERA_ASPECT_RATIO_KEY) || "auto",
-  quality: window.localStorage.getItem(CAMERA_QUALITY_KEY) || "auto",
+  aspectRatio: "auto",
+  quality: "auto",
 });
 
 // Loads the initial display preferences from local storage.
 export const loadDisplayPrefs = (): DisplayPrefs => ({
-  quality: window.localStorage.getItem(DISPLAY_QUALITY_KEY) || "auto",
+  quality: "auto",
 });
 
 type StreamSettingsProps = {
   isDesktop: boolean;
   stream: MediaStream | null;
+  inline?: boolean;
 }
 
-export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, stream }) => {
+export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, stream, inline = false }) => {
   const dispatch = useDispatch();
   const settings = useSettings();
   const floatRef = useRef<FloatingHandle>(null);
@@ -138,6 +127,12 @@ export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, strea
   const updatePrefs = (newPrefs: CameraPrefs | DisplayPrefs) => {
     // Merge and update preferences.
     const merged = { ...prefs, ...newPrefs };
+    if ("quality" in merged) {
+      merged.quality = "auto";
+    }
+    if ("aspectRatio" in merged) {
+      merged.aspectRatio = "auto";
+    }
     const constraints = prefsToConstraints(merged, true);
 
     const setOpt = (key: string, v: string | undefined) => {
@@ -149,14 +144,14 @@ export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, strea
     // Update preferences in local storage and re-request stream. The latter
     // will cause the rerender.
     if (isDesktop) {
-      setOpt(DISPLAY_QUALITY_KEY, merged.quality);
+      setOpt(DISPLAY_QUALITY_KEY, "auto");
 
       stopDisplayCapture(stream, dispatch);
       startDisplayCapture(dispatch, settings, constraints);
     } else {
       setOpt(LAST_VIDEO_DEVICE_KEY, (merged as Record<string, string>)["deviceId"]);
-      setOpt(CAMERA_ASPECT_RATIO_KEY, (merged as Record<string, string>)["aspectRatio"]);
-      setOpt(CAMERA_QUALITY_KEY, merged.quality);
+      setOpt(CAMERA_ASPECT_RATIO_KEY, "auto");
+      setOpt(CAMERA_QUALITY_KEY, "auto");
 
       stopUserCapture(stream, dispatch);
       startUserCapture(dispatch, settings, constraints);
@@ -176,6 +171,64 @@ export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, strea
   // State about expanding and hiding the settings.
   const [isExpanded, setIsExpanded] = useState(false);
   const label = t(`steps.video.video-settings-${isExpanded ? "close" : "open"}` as const);
+
+  const relaunchDisplayPicker = () => {
+    const constraints = prefsToConstraints(loadDisplayPrefs(), true);
+    stopDisplayCapture(stream, dispatch);
+    startDisplayCapture(dispatch, settings, constraints);
+  };
+
+  const inlineContainerCss: CSSObject = {
+    position: "relative",
+    right: "auto",
+    bottom: "auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 24,
+  };
+
+  const absoluteContainerCss: CSSObject = {
+    position: "absolute",
+    right: 8,
+    bottom: 8,
+  };
+
+  const containerCss = inline ? inlineContainerCss : absoluteContainerCss;
+
+  if (isDesktop) {
+    return (
+      <FloatingContainer
+        ref={floatRef}
+        placement="top-end"
+        ariaRole="dialog"
+        open={false}
+        onClose={() => setIsExpanded(false)}
+        borderRadius={8}
+        viewPortMargin={8}
+        css={containerCss}
+      >
+        <FloatingTrigger>
+          <WithTooltip placement="bottom" tooltip={t("steps.video.reselect-source")}>
+            <ProtoButton
+              onClick={relaunchDisplayPicker}
+              aria-label={t("steps.video.reselect-source")}
+              css={{
+                ...OVERLAY_STYLE,
+                ...inline && {
+                  backgroundColor: "transparent",
+                  "&:hover, &:focus-visible": { backgroundColor: "transparent" },
+                },
+                fontSize: 26,
+              }}
+            >
+              <FiSettings />
+            </ProtoButton>
+          </WithTooltip>
+        </FloatingTrigger>
+      </FloatingContainer>
+    );
+  }
 
   return <>
     {/* Stream info at the top */}
@@ -207,11 +260,7 @@ export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, strea
       onClose={() => setIsExpanded(false)}
       borderRadius={8}
       viewPortMargin={8}
-      css={{
-        position: "absolute",
-        right: 8,
-        bottom: 8,
-      }}
+      css={containerCss}
     >
       <FloatingTrigger>
         <WithTooltip placement="bottom" tooltip={label}>
@@ -220,6 +269,10 @@ export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, strea
             aria-label={label}
             css={{
               ...OVERLAY_STYLE,
+              ...inline && {
+                backgroundColor: "transparent",
+                "&:hover, &:focus-visible": { backgroundColor: "transparent" },
+              },
               fontSize: 26,
               "> svg": {
                 transition: "transform 0.2s",
@@ -257,25 +310,9 @@ export const StreamSettings: React.FC<StreamSettingsProps> = ({ isDesktop, strea
             fontSize: 16,
           },
         }}>
-          {!isDesktop && <UserSettings {...{ updatePrefs, prefs, isExpanded }} />}
-          <UniveralSettings {...{ isDesktop, updatePrefs, prefs, stream, settings, isExpanded }} />
+          {!isDesktop && <UserSettings updatePrefs={updatePrefs} />}
         </div>
 
-        <div css={{
-          backgroundColor: COLORS.neutral15,
-          marginTop: 8,
-          padding: "8px 12px",
-          fontSize: 12,
-          lineHeight: 1.25,
-          borderRadius: 6,
-          "@media (min-width: 420px) and (min-height: 440px)": {
-            fontSize: 14,
-          },
-        }}>
-          <Trans i18nKey="steps.video.preferences-note">
-            <strong>Note:</strong> Explanation.
-          </Trans>
-        </div>
       </Floating>
     </FloatingContainer>
   </>;
@@ -314,57 +351,13 @@ const PrefValue: React.FC<React.PropsWithChildren> = ({ children }) => (
   </div>
 );
 
-type UniveralSettingsProps = {
-  isDesktop: boolean;
-  updatePrefs: (p: CameraPrefs | DisplayPrefs) => void;
-  prefs: CameraPrefs | DisplayPrefs;
-  settings: Settings;
-};
-
-const UniveralSettings: React.FC<UniveralSettingsProps> = (
-  { isDesktop, updatePrefs, prefs, settings },
-) => {
-  const { t } = useTranslation();
-
-  const changeQuality = (quality: string) => updatePrefs({ quality });
-  const maxHeight = isDesktop ? settings.display?.maxHeight : settings.camera?.maxHeight;
-  const qualities = qualityOptions(maxHeight);
-  const kind = isDesktop ? "desktop" : "user";
-
-  return <>
-    <PrefKey>{t("steps.video.quality")}</PrefKey>
-    <PrefValue>
-      <RadioButton
-        id={`quality-auto-${kind}`}
-        value="auto"
-        name={`quality-${kind}`}
-        label={t("steps.video.quality-auto")}
-        onChange={changeQuality}
-        checked={qualities.every(q => prefs.quality !== q)}
-      />
-      {
-        qualities.map(q => (
-          <RadioButton
-            key={`${q}-${kind}`}
-            id={`quality-${q}-${kind}`}
-            value={q}
-            name={`quality-${kind}`}
-            onChange={changeQuality}
-            checked={prefs.quality === q}
-          />
-        ))
-      }
-    </PrefValue>
-  </>;
-};
 
 type UserSettingsProps = {
   updatePrefs: (p: CameraPrefs | DisplayPrefs) => void;
-  prefs: CameraPrefs;
 };
 
 
-const UserSettings: React.FC<UserSettingsProps> = ({ updatePrefs, prefs }) => {
+const UserSettings: React.FC<UserSettingsProps> = ({ updatePrefs }) => {
   const { t } = useTranslation();
   const state = useStudioState();
 
@@ -372,7 +365,6 @@ const UserSettings: React.FC<UserSettingsProps> = ({ updatePrefs, prefs }) => {
   const devices = getUniqueDevices(state.mediaDevices, "videoinput");
 
   const changeDevice = (id: string) => updatePrefs({ deviceId: id });
-  const changeAspectRatio = (ratio: string) => updatePrefs({ aspectRatio: ratio });
 
   return <>
     <PrefKey>
@@ -389,27 +381,6 @@ const UserSettings: React.FC<UserSettingsProps> = ({ updatePrefs, prefs }) => {
       </Select>
     </PrefValue>
 
-    <PrefKey>{t("steps.video.aspect-ratio")}</PrefKey>
-    <PrefValue>
-      <RadioButton
-        id="ar-auto"
-        value="auto"
-        name="aspectRatio"
-        label={t("steps.video.aspect-ratio-auto")}
-        onChange={changeAspectRatio}
-        checked={ASPECT_RATIOS.every(x => prefs.aspectRatio !== x)}
-      />
-      {ASPECT_RATIOS.map(ar => (
-        <RadioButton
-          key={ar}
-          id={`ar-${ar}`}
-          value={ar}
-          name="aspectRatio"
-          onChange={changeAspectRatio}
-          checked={prefs.aspectRatio === ar}
-        />
-      ))}
-    </PrefValue>
   </>;
 };
 
