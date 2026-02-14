@@ -1,4 +1,6 @@
 import React from "react";
+import { WithTooltip } from "@opencast/appkit";
+import { useTranslation } from "react-i18next";
 
 export type CropRect = { x: number; y: number; width: number; height: number };
 
@@ -9,6 +11,7 @@ type Props = {
   aspectMode: AspectMode;
   onAspectModeChange: (mode: AspectMode) => void;
   rightSlot?: React.ReactNode;
+  supportsAdvancedCrop?: boolean;
 };
 
 /**
@@ -20,7 +23,9 @@ export const CropControls: React.FC<Props> = ({
   aspectMode,
   onAspectModeChange,
   rightSlot,
+  supportsAdvancedCrop,
 }) => {
+  const { t } = useTranslation();
   return (
     <div css={{
       padding: "6px 10px",
@@ -56,24 +61,36 @@ export const CropControls: React.FC<Props> = ({
             { key: "1:1" as const, label: "1:1" },
             { key: "free" as const, label: "Freeform" },
           ]).map(option => (
-            <button
-              key={option.key}
-              onClick={() => onAspectModeChange(option.key)}
-              css={{
-                padding: "3px 8px",
-                background: aspectMode === option.key ? "#00b37e" : "#333",
-                color: "white",
-                border: "1px solid #444",
-                borderRadius: 12,
-                cursor: "pointer",
-                fontSize: 10,
-                fontWeight: 600,
-                height: 24,
-                ":hover": { background: aspectMode === option.key ? "#00a371" : "#3a3a3a" },
-              }}
-            >
-              {option.label}
-            </button>
+            (() => {
+              const disabled = !supportsAdvancedCrop;
+              const btn = (
+                <button
+                  key={option.key}
+                  onClick={() => !disabled && onAspectModeChange(option.key)}
+                  disabled={disabled}
+                  css={{
+                    padding: "3px 8px",
+                    background: aspectMode === option.key ? "#00b37e" : "#333",
+                    color: "white",
+                    border: "1px solid #444",
+                    borderRadius: 12,
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    height: 24,
+                    opacity: disabled ? 0.55 : 1,
+                    ":hover": disabled ? undefined : { background: aspectMode === option.key ? "#00a371" : "#3a3a3a" },
+                  }}
+                >
+                  {option.label}
+                </button>
+              );
+              return disabled ? (
+                <WithTooltip placement="top" tooltip={t("steps.video.advanced-background-recording-unavailable")} key={option.key}>
+                  {btn}
+                </WithTooltip>
+              ) : btn;
+            })()
           ))}
           <button
             onClick={onReset}

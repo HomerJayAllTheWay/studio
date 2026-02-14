@@ -35,7 +35,8 @@
       "aspect-ratio-auto": "auto",
       "quality": "Kwaliteit",
       "quality-auto": "auto",
-      "preferences-note": "0>Note:</0> dit zijn slechts voorkeuren en het kan niet worden gegarandeerd dat alle opties daadwerkelijk worden ondersteund op uw toestel. Kies bij twijfel voor 'auto'."
+      "preferences-note": "0>Note:</0> dit zijn slechts voorkeuren en het kan niet worden gegarandeerd dat alle opties daadwerkelijk worden ondersteund op uw toestel. Kies bij twijfel voor 'auto'.",
+      "advanced-background-recording-unavailable": "Bijsnijden is niet beschikbaar in deze browser"
     },
     "audio": {
       "question": "Audio opnemen?",

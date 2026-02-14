@@ -58,6 +58,8 @@
       "preferences-note": "<0>Nota:</0> queste sono solo preferenze e non si può garantire che tutte le opzioni siano effettivamente supportate dal dispositivo. In caso di dubbio, scegliere 'auto'.",
       "display-audio-shared": "L'audio dello schermo verrà registrato.",
       "display-audio-not-shared": "L'audio dello schermo non verrà registrato. <0>Nota</0>: Non tutti i browser e i sistemi operativi supportano l'acquisizione dell'audio dello schermo."
+      ,
+      "advanced-background-recording-unavailable": "Il ritaglio non è disponibile in questo browser"
     },
     "audio": {
       "label": "Selezionare la sorgente audio",

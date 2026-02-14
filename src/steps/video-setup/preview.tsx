@@ -1,4 +1,4 @@
-import { JSX, MouseEvent, useEffect, useRef, useState } from "react";
+import { JSX, MouseEvent, useEffect, useRef, useState, useMemo } from "react";
 import { Spinner, WithTooltip, match, unreachable, useColorScheme } from "@opencast/appkit";
 import { Trans, useTranslation } from "react-i18next";
 import { LuInfo, LuVolume2, LuVolumeX } from "react-icons/lu";
@@ -151,6 +151,18 @@ const StreamPreview: React.FC<{ input: Input }> = ({ input }) => {
   }, [input.stream, currentCrop, streamDims[0], streamDims[1], aspectMode]);
   const aspectRatio = ratioForMode(aspectMode);
 
+  const supportsAdvancedCrop = useMemo(() => {
+    try {
+      const g = globalThis as unknown as Record<string, unknown>;
+      const hasProcessor = typeof g.MediaStreamTrackProcessor === "function";
+      const hasGenerator = typeof g.MediaStreamTrackGenerator === "function";
+      const hasOffscreen = typeof g.OffscreenCanvas !== "undefined";
+      return !!(hasProcessor && hasGenerator && hasOffscreen);
+    } catch (e) {
+      return false;
+    }
+  }, []);
+
   const handleAspectModeChange = (mode: AspectMode) => {
     setAspectMode(mode);
     if (mode === "free") {
@@ -208,6 +220,7 @@ const StreamPreview: React.FC<{ input: Input }> = ({ input }) => {
             onReset={handleCropReset}
             aspectMode={aspectMode}
             onAspectModeChange={handleAspectModeChange}
+            supportsAdvancedCrop={supportsAdvancedCrop}
             rightSlot={<StreamSettings isDesktop={input.isDesktop} stream={input.stream} inline />}
           />
         </div>

@@ -58,6 +58,8 @@
       "preferences-note": "<0>Bemærk:</0> dette er kun præferencer, og ikke alle muligheder understøttes på din enhed. Vælg 'auto', hvis du er i tvivl.",
       "display-audio-shared": "Skærmens lyd vil blive optaget.",
       "display-audio-not-shared": "Skærmens lyd vil ikke blive optaget. <0>Bemærk</0>: Ikke alle browsere og systemer understøtter skærmlyd."
+      ,
+      "advanced-background-recording-unavailable": "Beskæring er ikke tilgængelig i denne browser"
     },
     "audio": {
       "label": "Vælg lydkilde",
