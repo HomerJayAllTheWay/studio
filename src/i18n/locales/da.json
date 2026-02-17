@@ -141,7 +141,8 @@
         "label": "Gem lokalt",
         "save-desktop-locally": "Gem skærmoptagelse lokalt",
         "save-video-locally": "Gem kameraoptagelse lokalt",
-        "recording-saved": "Optagelse gemt"
+        "recording-saved": "Optagelse gemt",
+        "save-crop-metadata": "Save crop metadata"
       }
     }
   },

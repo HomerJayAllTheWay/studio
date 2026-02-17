@@ -132,7 +132,8 @@
         "label": "Guarda localment",
         "save-desktop-locally": "Guarda la gravació de la pantalla localment",
         "save-video-locally": "Guarda la gravació de la càmera localment",
-        "recording-saved": "S'ha guardat la gravació"
+        "recording-saved": "S'ha guardat la gravació",
+        "save-crop-metadata": "Desa la informació de retall"
       }
     }
   },

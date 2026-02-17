@@ -43,6 +43,9 @@ export type StudioState = {
   // Crop settings for display and user video
   displayCrop: { x: number; y: number; width: number; height: number } | null;
   userCrop: { x: number; y: number; width: number; height: number } | null;
+  // Crop settings applied on the trim page (final output metadata)
+  finalDisplayCrop: { x: number; y: number; width: number; height: number } | null;
+  finalUserCrop: { x: number; y: number; width: number; height: number } | null;
 
   isRecording: boolean;
   prematureRecordingEnd: boolean;
@@ -89,6 +92,8 @@ const initialState = (hasWebcam: boolean): StudioState => ({
 
   displayCrop: null,
   userCrop: null,
+  finalDisplayCrop: null,
+  finalUserCrop: null,
 
   isRecording: false,
   prematureRecordingEnd: false,
@@ -130,6 +135,8 @@ type ReducerAction =
   | { type: "USER_UNEXPECTED_END" }
   | { type: "SET_DISPLAY_CROP"; crop: { x: number; y: number; width: number; height: number } | null }
   | { type: "SET_USER_CROP"; crop: { x: number; y: number; width: number; height: number } | null }
+  | { type: "SET_FINAL_DISPLAY_CROP"; crop: { x: number; y: number; width: number; height: number } | null }
+  | { type: "SET_FINAL_USER_CROP"; crop: { x: number; y: number; width: number; height: number } | null }
   | { type: "START_RECORDING" }
   | { type: "STOP_RECORDING" }
   | { type: "STOP_RECORDING_PREMATURELY" }
@@ -190,6 +197,10 @@ const reducer = (state: StudioState, action: ReducerAction): StudioState => {
       return { ...state, displayCrop: action.crop };
     case "SET_USER_CROP":
       return { ...state, userCrop: action.crop };
+    case "SET_FINAL_DISPLAY_CROP":
+      return { ...state, finalDisplayCrop: action.crop };
+    case "SET_FINAL_USER_CROP":
+      return { ...state, finalUserCrop: action.crop };
 
     case "START_RECORDING": return { ...state, isRecording: true, recordingStartTime: new Date() };
     case "STOP_RECORDING": return { ...state, isRecording: false, recordingEndTime: new Date() };
@@ -201,7 +212,13 @@ const reducer = (state: StudioState, action: ReducerAction): StudioState => {
         recordingEndTime: new Date(),
       };
     case "CLEAR_RECORDINGS":
-      return { ...state, recordings: [], prematureRecordingEnd: false };
+      return {
+        ...state,
+        recordings: [],
+        prematureRecordingEnd: false,
+        finalDisplayCrop: null,
+        finalUserCrop: null,
+      };
     case "ADD_RECORDING":
       // We remove all recordings with the same device type as the new one. This
       // *should* in theory never happen as all recordings are cleared before

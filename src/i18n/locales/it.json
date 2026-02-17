@@ -141,7 +141,8 @@
         "label": "Salvare localmente",
         "save-desktop-locally": "Salvare la registrazione dello schermo in locale",
         "save-video-locally": "Salvare la registrazione della camera in locale",
-        "recording-saved": "Registrazione salvata"
+        "recording-saved": "Registrazione salvata",
+        "save-crop-metadata": "Salva i metadati di ritaglio"
       }
     }
   },

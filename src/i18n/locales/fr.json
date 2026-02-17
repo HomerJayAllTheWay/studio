@@ -141,7 +141,8 @@
         "label": "Enregistrer localement",
         "save-desktop-locally": "Télécharger l’enregistrement d’écran",
         "save-video-locally": "Télécharger l’enregistrement de la caméra",
-        "recording-saved": "Enregistrement sauvegardé"
+          "recording-saved": "Enregistrement sauvegardé",
+          "save-crop-metadata": "Enregistrer les métadonnées de recadrage"
       }
     }
   },

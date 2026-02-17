@@ -97,6 +97,9 @@
           "hours": "小时",
           "left": "剩余{{time}}"
         }
+      },
+      "save-locally": {
+        "save-crop-metadata": "Save crop metadata"
       }
     }
   }

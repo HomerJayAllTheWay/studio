@@ -95,6 +95,9 @@
           "hours": "uren",
           "left": "{{time}} over"
         }
+      },
+      "save-locally": {
+        "save-crop-metadata": "Save crop metadata"
       }
     }
   }

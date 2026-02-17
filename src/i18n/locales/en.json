@@ -140,7 +140,8 @@
         "label": "Save locally",
         "save-desktop-locally": "Save display recording locally",
         "save-video-locally": "Save camera recording locally",
-        "recording-saved": "Recording saved"
+        "recording-saved": "Recording saved",
+        "save-crop-metadata": "Save crop metadata"
       }
     }
   },

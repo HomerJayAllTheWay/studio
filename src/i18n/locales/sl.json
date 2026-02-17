@@ -75,6 +75,9 @@
           "hours": "ure",
           "left": "{{time}} ostane"
         }
+      },
+      "save-locally": {
+        "save-crop-metadata": "Save crop metadata"
       }
     }
   }

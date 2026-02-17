@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FiDownload } from "react-icons/fi";
 import { LuCircleCheckBig } from "react-icons/lu";
@@ -23,7 +23,16 @@ type SaveLocallySingleProps = {
 
 const SaveLocallySingle: React.FC<SaveLocallySingleProps> = ({ recording, idx }) => {
   const { t, i18n } = useTranslation();
-  const { title, presenter } = useStudioState();
+  const {
+    title,
+    presenter,
+    start,
+    end,
+    recordingStartTime,
+    recordingEndTime,
+    finalDisplayCrop,
+    finalUserCrop,
+  } = useStudioState();
   const { isHighContrast } = useColorScheme();
   const dispatch = useDispatch();
   const showShortcuts = useShowAvailableShortcuts();
@@ -36,6 +45,55 @@ const SaveLocallySingle: React.FC<SaveLocallySingleProps> = ({ recording, idx })
   const { deviceType, mimeType, url, downloaded, media: blob } = recording;
   const flavor = deviceType === "desktop" ? t("sources-display") : t("sources-user");
   const downloadName = recordingFileName({ mime: mimeType, flavor, title, presenter });
+  const crop = deviceType === "desktop" ? finalDisplayCrop : finalUserCrop;
+  const metadata = useMemo(() => ({
+    version: 1,
+    deviceType,
+    mimeType,
+    dimensions: recording.dimensions,
+    trim: {
+      start,
+      end,
+    },
+    crop,
+    recordingStartTime: recordingStartTime?.toISOString() ?? null,
+    recordingEndTime: recordingEndTime?.toISOString() ?? null,
+  }), [
+    crop,
+    deviceType,
+    end,
+    mimeType,
+    recording.dimensions,
+    recordingEndTime,
+    recordingStartTime,
+    start,
+  ]);
+  const metadataBlob = useMemo(() => new Blob(
+    [JSON.stringify(metadata, null, 2)],
+    { type: "application/json" },
+  ), [metadata]);
+  const [metadataUrl, setMetadataUrl] = useState<string>("");
+  const metadataName = useMemo(() => {
+    const baseName = downloadName.replace(/\.[^/.]+$/, "");
+    return `${baseName || downloadName}.crop.json`;
+  }, [downloadName]);
+
+  useEffect(() => {
+    setMetadataUrl(prev => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return URL.createObjectURL(metadataBlob);
+    });
+    return () => {
+      setMetadataUrl(prev => {
+        if (prev) {
+          URL.revokeObjectURL(prev);
+        }
+        return "";
+      });
+    };
+  }, [metadataBlob]);
 
   if (!url) {
     return null;
@@ -118,6 +176,23 @@ const SaveLocallySingle: React.FC<SaveLocallySingleProps> = ({ recording, idx })
             <ShortcutKeys shortcut={SHORTCUTS.finish.download} />
           </div>
         )}
+      </a>
+      <a
+        aria-label={t("steps.finish.save-locally.save-crop-metadata")}
+        download={metadataName}
+        href={metadataUrl}
+        role="button"
+        css={{
+          ...sharedButtonStyle(isHighContrast),
+          justifyContent: "center",
+          maxWidth: 260,
+          margin: "auto",
+          marginTop: 8,
+        }}
+      >
+        <FiDownload css={{ fontSize: 20 }} />
+        {t("steps.finish.save-locally.save-crop-metadata")}
+        {" (" + prettyFileSize(metadataBlob.size, i18n) + ")"}
       </a>
     </div>
   );

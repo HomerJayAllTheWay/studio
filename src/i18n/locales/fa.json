@@ -130,7 +130,8 @@
                 "label": "ذخیره محلی",
                 "save-desktop-locally": "ذخیره ضبط صفحه نمایش به صورت محلی",
                 "save-video-locally": "ذخیره ضبط دوربین به صورت محلی",
-                "recording-saved": "مورد ضبط شده ذخیره شد"
+                "recording-saved": "مورد ضبط شده ذخیره شد",
+                "save-crop-metadata": "ذخیره متادیتای برش"
             }
         }
     },

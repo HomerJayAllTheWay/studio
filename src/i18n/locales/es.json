@@ -130,7 +130,8 @@
         "label": "Guardar localmente",
         "save-desktop-locally": "Guardar grabación de la pantalla localmente",
         "save-video-locally": "Guardar grabación de la cámara localmente",
-        "recording-saved": "Grabación guardada"
+        "recording-saved": "Grabación guardada",
+        "save-crop-metadata": "Guardar metadatos de recorte"
       }
     }
   },
